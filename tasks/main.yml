@@ -1,0 +1,20 @@
+---
+
+
+- name: nsqlookupd | create the nsqlookupd init script
+  copy: src=nsqlookupd.init dest=/etc/init.d/nsqlookupd mode=755
+  register: nsqlookupd_task_init
+
+- name: nsqlookupd | create the nsqlookupd config file
+  template: src=nsqd.conf.j2 dest=/usr/local/etc/nsqd.conf
+  register: nsqlookupd_task_conf
+  notify:
+    - restart nsqlookupd
+
+- name: nsqlookupd | create nsqlookupd data directory
+  command: mkdir /var/lib/nsq
+  when: nsqlookupd_task_init|failed or nsqlookupd_task_conf|failed
+  ignore_errors: yes
+
+- name: nsqlookupd | enable and start nsqlookupd
+  service: name=nsqlookupd state=started enabled=true

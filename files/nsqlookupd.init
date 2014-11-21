@@ -1,0 +1,70 @@
+#!/bin/bash
+# chkconfig: 2345 95 20
+# description: the nsqlooklupd daemon
+# start up the nsqlookupd daemon
+# processname: nsqlookupd
+
+# Source function library.
+. /etc/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+PROG=nsqlookupd
+PROG_DIR=/usr/local/nsq
+PROG_CONF=/usr/local/etc/$PROG.conf
+PROG_BIN_DIR=$PROG_DIR/bin
+PROG_EXEC=$PROG_BIN_DIR/$PROG
+PROG_LOG=/var/log/$PROG.log
+PROG_PID=/var/run/$PROG
+PROG_OPTIONS="-config=$PROG_CONF"
+
+if [ -f /etc/sysconfig/$PROG ];then
+    . /etc/sysconfig/$PROG
+fi
+
+start() {
+    # Check that networking is up.
+    [ "$NETWORKING" = "no" ] && exit 1
+
+    echo -n $"Starting $PROG: "
+    daemon --check $PROG nohup $PROG_EXEC $PROG_OPTIONS < /dev/null &>> $PROG_LOG &
+    RETVAL=$?
+    PID=$!
+    echo
+    [ $RETVAL -eq 0 ] && echo $PID > $PROG_PID
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Shutting down $PROG: "
+    killproc $PROG
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $PROG_PID
+    return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status $PROG
+    RETVAL=$?
+    ;;
+  restart|reload)
+    stop
+    start
+    RETVAL=$?
+    ;;
+  *)
+  echo $"Usage: $0 {start|stop|restart|status}"
+  RETVAL=3
+esac
+
+exit $RETVAL

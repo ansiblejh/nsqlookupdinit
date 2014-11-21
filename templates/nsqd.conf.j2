@@ -1,0 +1,11 @@
+## enable verbose logging
+verbose = {{ nsqlookupd_logging_verbose }}
+
+## unique identifier (int) for this worker (will default to a hash of hostname)
+# worker_id = 5150
+
+## <addr>:<port> to listen on for TCP clients
+tcp_address = ":4160"
+
+## <addr>:<port> to listen on for HTTP clients
+http_address = ":4161"
